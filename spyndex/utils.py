@@ -72,3 +72,80 @@ def _check_params(index: str, params: dict, indices: dict):
             raise Exception(
                 f"'{band}' is missing in the parameters for {index} computation!"
             )
+
+
+def _has_ee_image(params: dict):
+    """Checks if earthengine is installed and if params has an ee.Image.
+
+    Parameters
+    ----------
+    params : dict
+        Dictionary to check.
+
+    Returns
+    -------
+    None
+    """
+    try:
+        import ee
+        return any(isinstance(v, ee.Image) for v in params.values())
+    except ImportError:
+        return False
+
+
+def _has_ee_number(params: dict):
+    """Checks if earthengine is installed and if params has an ee.Number.
+
+    Parameters
+    ----------
+    params : dict
+        Dictionary to check.
+
+    Returns
+    -------
+    None
+    """
+    try:
+        import ee
+        return any(isinstance(v, ee.Number) for v in params.values())
+    except ImportError:
+        return False
+
+
+def _maybe_import_earthengine(params: dict):
+    """Import Earth Engine and eemont if any param is an Earth Engine object, or raise if missing.
+
+    Parameters
+    ----------
+    params : dict
+        Dictionary to check.
+
+    Returns
+    -------
+    None
+    """
+    try:
+        import ee
+    except ImportError:
+        needs_ee = False
+        for v in params.values():
+            if v.__class__.__name__ in ("Image", "Number"):
+                needs_ee = True
+                break
+        if needs_ee:
+            raise ImportError(
+                "Earth Engine features require the optional dependency 'spyndex[ee]'.\n"
+                "Install it with:\n\n    pip install 'spyndex[ee]'"
+            )
+        else:
+            return
+
+    if any(isinstance(v, (ee.Image, ee.Number)) for v in params.values()):
+        try:
+            import eemont
+        except ImportError:
+            raise ImportError(
+                "Earth Engine features also require 'eemont'.\n"
+                "Install it with:\n\n    pip install 'spyndex[ee]'"
+            )
+

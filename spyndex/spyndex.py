@@ -4,13 +4,11 @@ from typing import Any, List, Optional, Union
 import dask
 import dask.array as da
 import dask.dataframe as dd
-import ee
-import eemont
 import numpy as np
 import pandas as pd
 import xarray as xr
 
-from .utils import _check_params, _get_indices
+from .utils import _check_params, _get_indices, _has_ee_image, _has_ee_number, _maybe_import_earthengine
 
 
 def computeIndex(
@@ -213,6 +211,8 @@ def computeIndex(
     indices = _get_indices(online)
     names = list(indices.keys())
 
+    _maybe_import_earthengine(params)
+
     result = []
     for idx in index:
         if idx not in names:
@@ -234,9 +234,11 @@ def computeIndex(
                 result = xr.concat(result, dim=coordinate).assign_coords(
                     {coordinate: index}
                 )
-            elif isinstance(result[0], ee.Image):
+            elif _has_ee_image(params):
+                import ee, eemont
                 result = ee.Image(result).rename(index)
-            elif isinstance(result[0], ee.Number):
+            elif _has_ee_number(params):
+                import ee, eemont
                 result = ee.List(result)
             elif isinstance(result[0], dask.array.Array):
                 result = da.array(result)
@@ -401,12 +403,10 @@ def computeKernel(kernel: str, params: Optional[dict] = None, **kwargs) -> Any:
         "poly": "((a * b) + c) ** p",
     }
 
-    if (
-        isinstance(params["a"], ee.Image)
-        or isinstance(params["b"], ee.Image)
-        or isinstance(params["a"], ee.Number)
-        or isinstance(params["b"], ee.Number)
-    ):
+    _maybe_import_earthengine(params)
+
+    if _has_ee_image(params) or _has_ee_number(params):
+        import ee, eemont
         kernels["RBF"] = "exp((-1.0 * (a - b) ** 2.0)/(2.0 * sigma ** 2.0))"
         result = params["a"].expression(kernels[kernel], params)
     else:

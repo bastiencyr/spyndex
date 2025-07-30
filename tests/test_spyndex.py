@@ -1,14 +1,18 @@
 import unittest
 
-import ee
-import eemont
 import numpy as np
 import pandas as pd
 import xarray as xr
 
 import spyndex
 
-ee.Initialize()
+try:
+    import ee
+    import eemont
+    ee.Initialize()
+    HAS_EE = True
+except ImportError:
+    HAS_EE = False
 
 B = np.random.normal(0.1, 0.1, 20 * 20)
 G = np.random.normal(0.3, 0.1, 20 * 20)
@@ -229,6 +233,7 @@ class Test(unittest.TestCase):
         self.assertIsInstance(result, list)
         self.assertIsInstance(result[0], xr.DataArray)
 
+    @unittest.skipUnless(HAS_EE, "Earth Engine not installed")
     def test_ee(self):
         """Test the computeIndex() method"""
         result = spyndex.computeIndex(
@@ -246,6 +251,7 @@ class Test(unittest.TestCase):
         )
         self.assertIsInstance(result, ee.Image)
 
+    @unittest.skipUnless(HAS_EE, "Earth Engine not installed")
     def test_ee_origin_false(self):
         """Test the computeIndex() method"""
         result = spyndex.computeIndex(
