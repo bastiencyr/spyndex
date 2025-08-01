@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v0.7.1
+------
+
+Improvements
+~~~~~~~~~~~~
+
+- Earth Engine features are now under extra dependencies. Installation can be performed using :code:`pip install spyndex[ee]`.
+
 v0.7.0
 ------
 
