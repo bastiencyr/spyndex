@@ -29,7 +29,7 @@ dependencies = [
     "dask>=2023.7.0",
     "matplotlib",
     "pandas>=2.0.3",
-    "pyarrow",
+    # "pyarrow",
     "python-box>=6.0",
     "requests",
     "seaborn",
